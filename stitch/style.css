@@ -3637,11 +3637,28 @@ body {
 .kasir-form-container {
   background: var(--bg);
   min-height: calc(100vh - 44px - 60px);
+  padding-bottom: 80px;
 }
 
 .kasir-form-section {
   background: white;
   margin-bottom: 1px;
+}
+
+.kasir-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--primary-light);
+  border-bottom: 2px solid var(--primary);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.kasir-section-header i {
+  font-size: 18px;
 }
 
 .kasir-form-group {
@@ -3686,23 +3703,53 @@ body {
   padding: 0;
 }
 
+.kasir-perm-category {
+  margin-bottom: 1px;
+  background: white;
+}
+
+.kasir-perm-category-title {
+  padding: 10px 16px;
+  background: #f8f9fa;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
 .kasir-permission-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   background: white;
+  gap: 12px;
 }
 
 .kasir-permission-item:last-child {
   border-bottom: none;
 }
 
+.kasir-perm-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .kasir-permission-label {
   font-size: 14px;
   color: var(--text-dark);
-  flex: 1;
+  font-weight: 500;
+}
+
+.kasir-perm-desc {
+  font-size: 12px;
+  color: var(--text-light);
+  line-height: 1.3;
 }
 
 /* Toggle Switch */

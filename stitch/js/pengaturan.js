@@ -266,22 +266,45 @@ function simpanKasirBaru() {
   if (password && password !== passwordConfirm) { showToast('Password tidak cocok'); return; }
   if (password && password.length < 6) { showToast('Password minimal 6 karakter'); return; }
   
-  // Collect permissions
+  // Collect all permissions (30 permissions total)
   const permissions = {
-    ubahPOS: document.getElementById('perm-ubah-pos')?.checked || false,
+    // POS & Transaksi (6)
+    aksesPOS: document.getElementById('perm-akses-pos')?.checked || false,
     ubahHarga: document.getElementById('perm-ubah-harga')?.checked || false,
     ubahDiskon: document.getElementById('perm-ubah-diskon')?.checked || false,
-    printDraft: document.getElementById('perm-print-draft')?.checked || false,
-    master: document.getElementById('perm-master')?.checked || false,
+    hapusTransaksi: document.getElementById('perm-hapus-transaksi')?.checked || false,
+    simpanDraft: document.getElementById('perm-simpan-draft')?.checked || false,
     ubahTanggal: document.getElementById('perm-ubah-tanggal')?.checked || false,
-    biaya: document.getElementById('perm-biaya')?.checked || false,
-    ubahBiaya: document.getElementById('perm-ubah-biaya')?.checked || false,
-    pembelian: document.getElementById('perm-pembelian')?.checked || false,
-    printPembelian: document.getElementById('perm-print-pembelian')?.checked || false,
-    laporan: document.getElementById('perm-laporan')?.checked || false,
-    riwayat: document.getElementById('perm-riwayat')?.checked || false,
-    rekapan: document.getElementById('perm-rekapan')?.checked || false,
+    
+    // Produk & Stok (5)
+    lihatHargaBeli: document.getElementById('perm-lihat-harga-beli')?.checked || false,
     tambahProduk: document.getElementById('perm-tambah-produk')?.checked || false,
+    editProduk: document.getElementById('perm-edit-produk')?.checked || false,
+    hapusProduk: document.getElementById('perm-hapus-produk')?.checked || false,
+    kelolaStok: document.getElementById('perm-kelola-stok')?.checked || false,
+    
+    // Pembelian & Supplier (4)
+    aksesPembelian: document.getElementById('perm-akses-pembelian')?.checked || false,
+    tambahPembelian: document.getElementById('perm-tambah-pembelian')?.checked || false,
+    hapusPembelian: document.getElementById('perm-hapus-pembelian')?.checked || false,
+    bayarHutang: document.getElementById('perm-bayar-hutang')?.checked || false,
+    
+    // Biaya & Keuangan (3)
+    aksesBiaya: document.getElementById('perm-akses-biaya')?.checked || false,
+    tambahBiaya: document.getElementById('perm-tambah-biaya')?.checked || false,
+    hapusBiaya: document.getElementById('perm-hapus-biaya')?.checked || false,
+    
+    // Laporan (3)
+    aksesLaporan: document.getElementById('perm-akses-laporan')?.checked || false,
+    exportLaporan: document.getElementById('perm-export-laporan')?.checked || false,
+    lihatLabaRugi: document.getElementById('perm-lihat-laba-rugi')?.checked || false,
+    
+    // Pengaturan (5)
+    aksesPengaturan: document.getElementById('perm-akses-pengaturan')?.checked || false,
+    kelolaMaster: document.getElementById('perm-kelola-master')?.checked || false,
+    kelolaKasir: document.getElementById('perm-kelola-kasir')?.checked || false,
+    syncData: document.getElementById('perm-sync-data')?.checked || false,
+    hapusData: document.getElementById('perm-hapus-data')?.checked || false,
   };
   
   const kasir = {
@@ -293,6 +316,7 @@ function simpanKasirBaru() {
     password: password || '',
     permissions,
     createdAt: Date.now(),
+    updatedAt: Date.now(),
   };
   
   const list = DB.get('kasir');
@@ -399,7 +423,18 @@ let _editMetodeIdx = null;
 
 function _getMetodeList() {
   const saved = DB.get('metodePembayaran');
-  return saved.length ? saved : ['Tunai', 'Transfer', 'QRIS', 'Piutang'];
+  if (saved.length === 0) {
+    const defaults = ['Tunai', 'Transfer', 'QRIS', 'Piutang'];
+    DB.set('metodePembayaran', defaults);
+    return defaults;
+  }
+  // Normalize: convert objects to strings if needed
+  const normalized = saved.map(m => typeof m === 'string' ? m : (m.nama || String(m)));
+  // Save normalized version if it was objects
+  if (saved.some(m => typeof m === 'object')) {
+    DB.set('metodePembayaran', normalized);
+  }
+  return normalized;
 }
 
 function renderMetodePembayaran() {
@@ -407,13 +442,16 @@ function renderMetodePembayaran() {
   const container = document.getElementById('metode-pembayaran-list');
   if (!container) return;
   const icons = { Tunai: 'fa-money-bill-wave', Transfer: 'fa-building-columns', QRIS: 'fa-qrcode', Piutang: 'fa-file-invoice-dollar' };
-  container.innerHTML = list.map((k, i) => `
+  container.innerHTML = list.map((k, i) => {
+    // Handle both string and object format
+    const nama = typeof k === 'string' ? k : (k.nama || k);
+    return `
     <div class="crud-item">
       <div class="crud-item-avatar" style="background:#e8f4fd;">
-        <i class="fa-solid ${icons[k] || 'fa-credit-card'}" style="color:#3498db;"></i>
+        <i class="fa-solid ${icons[nama] || 'fa-credit-card'}" style="color:#3498db;"></i>
       </div>
       <div class="crud-item-info">
-        <div class="crud-item-nama">${k}</div>
+        <div class="crud-item-nama">${nama}</div>
       </div>
       <div class="crud-item-actions">
         <button class="crud-btn-edit" onclick="bukaFormMetodePembayaran(${i})">
@@ -423,7 +461,8 @@ function renderMetodePembayaran() {
           <i class="fa-solid fa-trash"></i>
         </button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function bukaFormMetodePembayaran(idx = null) {
